@@ -19,7 +19,7 @@ namespace AzureTelemetry
         private volatile bool shouldProcessEvents;
 
 #if WINDOWS_UWP
-                // lifting the values from the Azure Servicebus guidelines
+        // Azure Service Bus guidelines
         // link: https://azure.microsoft.com/en-us/documentation/articles/best-practices-retry-service-specific/#service-bus-retry-guidelines
         private int MaxRetryCount = 4;
         private int DeltaBackoff_millis = 1750;   
@@ -31,11 +31,11 @@ namespace AzureTelemetry
         /// <summary>
         /// Logger to Azure Eventhub
         /// </summary>
-        /// <param name="DeviceName">A device indentifier used for logging</param>  /// hololens
-        /// <param name="ServiceNamespace">The servicebus namespace</param>  //hololens
-        /// <param name="HubName">The eventhub name</param>  // hololens2
-        /// <param name="AuthorizationRulekey">The KeyName of the authorization Key</param>  // RootManageSharedAccessKey
-        /// <param name="AuthorizationRuleValue">The name of the Authorization Value</param>  // cjc89j93gnowDHNkbSXlY5k/JhOwKW7yD3DBma5OaME=
+        /// <param name="DeviceName">A device indentifier used for logging</param>  
+        /// <param name="ServiceNamespace">The servicebus namespace</param>  
+        /// <param name="HubName">The eventhub name</param>  
+        /// <param name="AuthorizationRulekey">The KeyName of the authorization Key</param>  
+        /// <param name="AuthorizationRuleValue">The name of the Authorization Value</param> 
         public LoggerHub(string DeviceName, string ServiceNamespace, string HubName, string AuthorizationRulekey, string AuthorizationRuleValue)
         {
 #if WINDOWS_UWP
@@ -45,17 +45,27 @@ namespace AzureTelemetry
 #endif
         }
 
+        /// <summary>
+        /// Called from the UI thread to start processing
+        /// </summary>
         public void StartProc()
         {
             this.shouldProcessEvents = true;
             this.ProcessOnSeparateThread(this.ProcessEvents);
         }
 
+        /// <summary>
+        /// Called from the UI thread to stop processing
+        /// </summary>
         public void StopProc()
         {
             this.shouldProcessEvents = false;
         }
 
+        /// <summary>
+        /// Do the actual send on a separate thread
+        /// </summary>
+        /// <param name="action"> The action to perform on a separate thread</param>
         private void ProcessOnSeparateThread(Action action)
         {
 #if WINDOWS_UWP
@@ -68,7 +78,7 @@ namespace AzureTelemetry
         }
 
         /// <summary>
-        /// Retry guidelines from Azure service bus best practices
+        /// Processing the events
         /// </summary>
 #if WINDOWS_UWP
         private async void ProcessEvents()

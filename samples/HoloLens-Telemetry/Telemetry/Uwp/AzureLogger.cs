@@ -22,11 +22,11 @@ namespace AzureTelemetry
         /// <summary>
         /// Logger to Azure Eventhub
         /// </summary>
-        /// <param name="DeviceName">A device indentifier used for logging</param>  /// hololens
-        /// <param name="ServiceNamespace">The servicebus namespace</param>  //hololens
-        /// <param name="HubName">The eventhub name</param>  // hololens2
-        /// <param name="AuthorizationRulekey">The KeyName of the authorization Key</param>  // RootManageSharedAccessKey
-        /// <param name="AuthorizationRuleValue">The name of the Authorization Value</param>  // cjc89j93gnowDHNkbSXlY5k/JhOwKW7yD3DBma5OaME=
+        /// <param name="DeviceName">A device indentifier used for logging</param> 
+        /// <param name="ServiceNamespace">The servicebus namespace</param>  
+        /// <param name="HubName">The eventhub name</param>  
+        /// <param name="AuthorizationRulekey">The KeyName of the authorization Key</param>  
+        /// <param name="AuthorizationRuleValue">The name of the Authorization Value</param>
         public AzureLogger(string DeviceName, string ServiceNamespace,string HubName, string AuthorizationRulekey, string AuthorizationRuleValue)
         {
             httpClient = new HttpClient();
@@ -40,7 +40,7 @@ namespace AzureTelemetry
         /// Create the SAS token
         /// </summary>
         /// <param name="resourceUri">Service BUS URI</param>
-        /// <param name="keyName">THe authorization rule key name</param>
+        /// <param name="keyName">The authorization rule key name</param>
         /// <param name="key">Authorization rule key</param>
         /// <returns>The SAS token</returns>
         private string createToken(string resourceUri, string keyName, string key)
@@ -48,7 +48,7 @@ namespace AzureTelemetry
             TimeSpan sinceEpoch = DateTime.UtcNow - new DateTime(1970, 1, 1);
             var day = 60 * 60 * 24;
 
-            // Signing for 24 hours shoul dbe enough
+            // Signing for 24 hours
             var expiry = Convert.ToString((int)sinceEpoch.TotalSeconds + day);
             string stringToSign = WebUtility.UrlEncode(resourceUri) + "\n" + expiry;
 
@@ -60,7 +60,7 @@ namespace AzureTelemetry
         /// <summary>
         /// Getting the SHA256 encoded string
         /// </summary>
-        /// <param name="key">Signing Key</param>
+        /// <param name="key">Signing key</param>
         /// <param name="value">Value to sign</param>
         /// <returns>The SHA256 encoded string </returns>
         private string GetHmacSha256(string key, string value)
