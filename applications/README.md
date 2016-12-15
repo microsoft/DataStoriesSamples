@@ -1,1 +1,1 @@
-** This path contains applicaitons of the DataStories
+** Hololens emitting Telemetry to Azure step by step
