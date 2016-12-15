@@ -1,0 +1,1 @@
+** Hololens emitting Telemetry to Azure 

@@ -39,7 +39,7 @@ namespace AzureTelemetry
         public LoggerHub(string DeviceName, string ServiceNamespace, string HubName, string AuthorizationRulekey, string AuthorizationRuleValue)
         {
 #if WINDOWS_UWP
-            this.azureLogger = new AzureLogger(DeviceName, ServiceBusURI, ServiceNamespace, HubName, AuthorizationRulekey, AuthorizationRuleValue);
+            this.azureLogger = new AzureLogger(DeviceName, ServiceNamespace, HubName, AuthorizationRulekey, AuthorizationRuleValue);
 #else
             this.unityLogger = new UnityLogger();
 #endif
