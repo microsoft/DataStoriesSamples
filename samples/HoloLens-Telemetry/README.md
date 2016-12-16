@@ -1,16 +1,17 @@
 # Bringing Telemetry to HoloLens Applications
 Developed jointly with Scott Haynie and Kevin Kennedy from the Microsoft HoloLens team.    
       
-Telemetry and analytics are a becoming a must for all applications, whether they are web, mobile or IOT. 
+Telemetry and analytics are becoming a must for all applications, whether they are web, mobile or IOT. 
 Analytics enable the application owner to monitor its health, figure out usage patterns and base the plans about how to improve the user experience on data. 
-One of the ways to stream data to Azure is by using a pipeline composed of:
+
+One of the ways to stream data to Azure is by building an end to end solution, that has the following:
 1.	The device emitting data to an Azure Event Hub
 2.	An Azure Streaming Advanced Analytics job pull the data from the Event Hub
-3.	The Advanced Analytics Streaming job output a dataset to PowerBI
+3.	Azure Stream Analytics job that outputs to PowerBI
 
 ## Setting up the telemetry pipeline
 
-You will need an azure account to follow along this blog. 
+You will need an azure account to follow along this article.
 If you don’t have an account, you can [create a free azure account](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-csharp-ephcs-getstarted).
 
 ## Creating the Azure Event Hub
