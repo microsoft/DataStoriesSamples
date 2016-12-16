@@ -57,7 +57,7 @@ Doing so, you will have an Origami solution with the following structure:
 If you need to fix the link to the Unity engine, unreferenced the dll, and reference it from: C:\Program Files\Unity\Editor\Data\Managed 
 Building the Telemetry solution creates a Plugins folder inside the already existing Assets folder, and places there the AzureTelemetry.dll inside it, and the AzureTelemetry_uw.dll inside the WSA subfolder, for a structure like the picture below. 
 
-<img src="media/assets.jpg" alt="assets" class="inline"/> 
+<img src="media/assets.JPG" alt="assets" class="inline"/> 
 
 2.	Launch Unity and open the Origami project
 In the Project Panel click on Assets -> Plugins ->  AzureTelemetry.dll. 
