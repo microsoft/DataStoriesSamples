@@ -29,8 +29,8 @@ In the first steps of setting up the azure telemetry pipeline, tools like [Servi
 It is good practice to create an additional “Shared Access Policy" and not use the Root managed one.  
 Keep note of the **policy name** and the **primary key** associated with it. It is again, one of the variables used to initialize the  AzureLogger library. 
 	 
-<img src="media/eventhub1.jpg" alt="hi" class="inline"/>
-<img src="media/eventhub2.jpg" alt="hi" class="inline"/>
+<img src="media/eventhub1.jpg" alt="eventhub1" class="inline"/>
+<img src="media/eventhub2.jpg" alt="eventhub2" class="inline"/>
 
 ## Setting up Service Bus Explorer to monitor the telemetry 
 To quickly get started with the Service bus explorer, you can watch the respective Channel 9 video: [Getting started with Service Bus. Part 3: Service Bus Explorer](https://channel9.msdn.com/Blogs/Subscribe/Getting-Started-with-Service-Bus-Part-3-Service-Bus-Explorer)
@@ -43,7 +43,7 @@ Endpoint=sb://NAMESPACe.servicebus.windows.net/;SharedAccessKeyName=POLICY_NAME;
 Where the policy being used is the one on the namespace, not the event hub itself. 
  
 
-<img src="media/servicebusexplorer.jpg" alt="hi" class="inline"/> 
+<img src="media/servicebusexplorer.JPG" alt="servicebusexplorer" class="inline"/> 
 
 Now that the Event Hub and the Service Bus Explorer are set up to receive events, and monitor them, let’s move on to modifying one of the Holographic Academy samples to emit telemetry. 
 
@@ -51,34 +51,34 @@ Now that the Event Hub and the Service Bus Explorer are set up to receive events
 To follow along this tutorial, you’d need to have worked through the Holograms_101 samples in the Holographic academy up to “Chapter 4 - Voice”. 
 Doing so, you will have an Origami solution with the following structure:
 
-<img src="media/origamisolution.jpg" alt="hi" class="inline"/> 
+<img src="media/origamisolution.JPG" alt="origamisolution" class="inline"/> 
 
 1. Download the Telemetry folder from this repository, and place it within the Origami folder.
 If you need to fix the link to the Unity engine, unreferenced the dll, and reference it from: C:\Program Files\Unity\Editor\Data\Managed 
 Building the Telemetry solution creates a Plugins folder inside the already existing Assets folder, and places there the AzureTelemetry.dll inside it, and the AzureTelemetry_uw.dll inside the WSA subfolder, for a structure like the picture below. 
 
-<img src="media/assets.jpg" alt="hi" class="inline"/> 
+<img src="media/assets.jpg" alt="assets" class="inline"/> 
 
 2.	Launch Unity and open the Origami project
 In the Project Panel click on Assets -> Plugins ->  AzureTelemetry.dll. 
 Select the Editor and Standalone platforms from the Inspector panel. 
 To configure the platform for the AzureLogger_uwp.dll click on Project Panel -> Plugins -> WSA -> AzureLogger_uwp.dll
 
-<img src="media/azuretelemetry.jpg" alt="hi" class="inline"/> 
-<img src="media/azuretelemetryuwp.jpg" alt="hi" class="inline"/> 
+<img src="media/azuretelemetry.jpg" alt="azuretelemetry" class="inline"/> 
+<img src="media/azuretelemetryuwp.jpg" alt="azuretelemetryuwp" class="inline"/> 
 
 3.	Build the Origami Universal App by going to File > Build Settings as instructed in the Holographic academy tutorials. 
 4.	Modify the manifest of the Origami Universal app to include Internet capabilities 
 
-<img src="media/internet.jpg" alt="hi" class="inline"/> 
+<img src="media/internet.jpg" alt="internet" class="inline"/> 
 
 5.	Start the Service Bus Explorer
 
-<img src="media/servicebusexplorerstart.jpg" alt="hi" class="inline"/>
+<img src="media/servicebusexplorerstart.JPG" alt="servicebusexplorerstart" class="inline"/>
 
 6.	Deploy the app in the HoloLens, and look around the scene objects.  
 
-<img src="media/scene.jpg" alt="hi" class="inline"/>
+<img src="media/scene.jpg" alt="scene" class="inline"/>
 
 You should start seeing events coming up in the Service Bus Explorer. 
   
