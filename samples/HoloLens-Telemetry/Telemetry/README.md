@@ -1,1 +1,1 @@
-** Hololens emitting Telemetry to Azure 
+Hololens emitting Telemetry to Azure 
