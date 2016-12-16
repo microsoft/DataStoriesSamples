@@ -5,9 +5,9 @@ Telemetry and analytics are becoming a must for all applications, whether they a
 Analytics enable the application owner to monitor its health, figure out usage patterns and base the plans about how to improve the user experience on data. 
 
 One of the ways to stream data to Azure is by building an end to end solution, that has the following:
-1.	The device emitting data to an Azure Event Hub
-2.	An Azure Streaming Advanced Analytics job pull the data from the Event Hub
-3.	Azure Stream Analytics job that outputs to PowerBI
+* The device emitting data to an Azure Event Hub
+* An Azure Streaming Advanced Analytics job pull the data from the Event Hub
+* Azure Stream Analytics job that outputs to PowerBI
 
 ## Setting up the telemetry pipeline
 
