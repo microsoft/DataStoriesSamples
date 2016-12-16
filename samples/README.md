@@ -1,1 +1,1 @@
-** Hololens emitting Telemetry to Azure step by step
+Step by Step Guide on Using Hololens and Cortana Intelligence Suite
