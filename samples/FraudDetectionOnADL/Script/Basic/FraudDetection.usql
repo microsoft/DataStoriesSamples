@@ -1,0 +1,35 @@
+//  Refer to R Extension Assemblies
+REFERENCE ASSEMBLY [ExtR];
+
+// R script
+DEPLOY RESOURCE @"/Samples/Scripts/FraudDetection.r";
+// Pretrained model file
+DEPLOY RESOURCE @"/Samples/Data/trainedmodel.rds";
+
+DECLARE @TransactionsInputFile string =  @"/Samples/Data/transactions_1m.csv";
+DECLARE @OutputFile string = @"/Samples/Output/fraud_prediction.csv";
+
+DECLARE @PartitionCount int = 10;
+
+@Transactions = 
+    EXTRACT accountID string, transactionID string, transactionAmountUSD double, transactionCurrencyCode string, localHour int,
+              transactionScenario string, transactionType string, transactionIPaddress double, ipState string, ipPostalCode string,
+                ipCountry string, isProxyIP string, browserLanguage string, paymentInstrumentType string, cardType string,
+ paymentBillingPostalCode string, paymentBillingState string, paymentBillingCountryCode string, shippingPostalCode string, shippingState string,
+          shippingCountry string, cvvVerifyResult string, digitalItemCount int, physicalItemCount int, transactionDateTime string
+    FROM @TransactionsInputFile
+    USING Extractors.Csv();
+
+@ExtendedData =
+    SELECT Extension.R.RandomNumberGenerator.GetRandomNumber(@PartitionCount) AS Par,
+           *
+    FROM @Transactions;
+
+@RScriptOutput = 
+    REDUCE @ExtendedData ON Par
+    PRODUCE Par, LabelPredicted int
+    READONLY Par
+    USING new Extension.R.Reducer(scriptFile:"FraudDetection.r", rReturnType:"dataframe");
+
+OUTPUT @RScriptOutput 
+	TO @OutputFile USING Outputters.Csv();
