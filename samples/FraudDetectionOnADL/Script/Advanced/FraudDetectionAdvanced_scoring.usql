@@ -1,0 +1,173 @@
+﻿REFERENCE ASSEMBLY [ExtR]; 
+
+// R script to run
+DEPLOY RESOURCE @"/Samples/Scripts/FraudDetection-Scoring.R";  
+
+// Pretrained model file
+DEPLOY RESOURCE @"/Samples/Output/training/trainedmodel-rxbtree.rds";
+
+// Input data for scoring (without headers)
+DECLARE @TransactionsInputFile string =  @"/Samples/Data/transactions.csv";
+DECLARE @AccountsInputFile string = @"/Samples/Data/accounts.csv";
+
+// Reference Tables
+DECLARE @AggTableFile string = @"/Samples/Output/training/aggtable.csv";
+DECLARE @risktable_ipstateInputFile string = @"/Samples/Output/training/riskTable_ipState.csv";
+DECLARE @risktable_ipPostalCodeInputFile string = @"/Samples/Output/training/riskTable_ipPostalCode.csv";
+DECLARE @risktable_ipCountryInputFile string = @"/Samples/Output/training/riskTable_ipCountry.csv";
+DECLARE @risktable_transactionIPaddressInputFile string = @"/Samples/Output/training/riskTable_transactionIPaddress.csv";
+DECLARE @risktable_paymentBillingPostalCodeInputFile string = @"/Samples/Output/training/riskTable_paymentBillingPostalCode.csv";
+DECLARE @risktable_shippingPostalCodeInputFile string = @"/Samples/Output/training/riskTable_shippingPostalCode.csv";
+DECLARE @risktable_accountPostalCodeInputFile string = @"/Samples/Output/training/riskTable_accountPostalCode.csv";
+
+// Output files
+DECLARE @OutputFile string = @"/Samples/Output/prediction.csv";
+DECLARE @PartitionCount int = 100;
+
+@Transactions = EXTRACT accountID string, transactionID string, transactionAmountUSD double, transactionCurrencyCode string, localHour int?,
+                transactionScenario string, transactionType string, transactionIPaddress double, ipState string, ipPostalCode string,
+                ipCountry string, isProxyIPNullable bool?, browserLanguage string, paymentInstrumentType string, cardType string,
+                paymentBillingPostalCode string, paymentBillingState string, paymentBillingCountryCode string, shippingPostalCode string, shippingState string,
+                shippingCountry string, cvvVerifyResult string, digitalItemCount int, physicalItemCount int, transactionDateTime string
+                FROM @TransactionsInputFile
+                USING Extractors.Csv(silent: true);
+
+@Transactions = SELECT accountID, transactionID, transactionAmountUSD, transactionCurrencyCode, (int)(localHour ?? 0) AS localHour,
+                transactionScenario, transactionType, transactionIPaddress, ipState, ipPostalCode,
+                ipCountry, (bool) (isProxyIPNullable ?? false) AS isProxyIP, browserLanguage, paymentInstrumentType, cardType,
+                paymentBillingPostalCode, paymentBillingState, paymentBillingCountryCode, shippingPostalCode, shippingState,
+                shippingCountry, cvvVerifyResult, digitalItemCount, physicalItemCount, transactionDateTime FROM @Transactions;
+
+@Accounts = 
+    EXTRACT accountID string, accountPostalCode string, accountState string, accountCountry string, accountAge string, 
+            isUserRegistered string, paymentInstrumentAgeInAccount string
+    FROM @AccountsInputFile
+    USING Extractors.Csv(silent: true);
+
+// Join Transactions with Accounts
+@Trans_Account = 
+    SELECT @Transactions.*, accountPostalCode, accountState, accountCountry, accountAge, isUserRegistered, paymentInstrumentAgeInAccount  
+    FROM @Transactions 
+    LEFT JOIN @Accounts 
+    ON @Transactions.accountID == @Accounts.accountID;
+
+
+// Join Reference table of last 1day/30day aggregation features (account-level)
+@AggTable = 
+    EXTRACT accountID string, sumPurchaseAmount1Day double, sumPurchaseCount1Day int, sumPurchaseAmount30Day double, sumPurchaseCount30Day int
+    FROM @AggTableFile
+    USING Extractors.Csv(silent: true);  
+
+@Trans_Account_Agg =
+    SELECT @Trans_Account. *,
+           sumPurchaseAmount1Day ?? 0 AS sumPurchaseAmount1Day,
+           sumPurchaseCount1Day ?? 0 AS sumPurchaseCount1Day,
+           sumPurchaseAmount30Day ?? 0 AS sumPurchaseAmount30Day,
+           sumPurchaseCount30Day ?? 0 AS sumPurchaseCount30Day
+    FROM @Trans_Account
+         LEFT JOIN
+             @AggTable
+         ON @Trans_Account.accountID == @AggTable.accountID;
+
+
+// Load Risk tables
+@Risktable_ipCountry = EXTRACT ipCountry string, ipCountry_risk double
+                    FROM @risktable_ipCountryInputFile   
+                    USING Extractors.Csv();
+
+@Risktable_ipState = EXTRACT ipState string, ipState_risk double
+                    FROM @risktable_ipstateInputFile
+                    USING Extractors.Csv();
+
+@Risktable_ipPostalCode = EXTRACT ipPostalCode string, ipPostalCode_risk double
+                    FROM @risktable_ipPostalCodeInputFile   
+                    USING Extractors.Csv();
+
+@Risktable_transactionIPaddress = EXTRACT transactionIPaddress double, transactionIPaddress_risk double
+                    FROM @risktable_transactionIPaddressInputFile   
+                    USING Extractors.Csv();
+
+@Risktable_paymentBillingPostalCode = EXTRACT paymentBillingPostalCode string, paymentBillingPostalCode_risk double
+                    FROM @risktable_paymentBillingPostalCodeInputFile   
+                    USING Extractors.Csv();
+
+@Risktable_shippingPostalCode = EXTRACT shippingPostalCode string, shippingPostalCode_risk double
+                    FROM @risktable_shippingPostalCodeInputFile   
+                    USING Extractors.Csv();
+
+@Risktable_accountPostalCode = EXTRACT accountPostalCode string, accountPostalCode_risk double
+                    FROM @risktable_accountPostalCodeInputFile   
+                    USING Extractors.Csv();
+
+
+// Assign risks
+@Trans_Account_Agg_Risk =
+    SELECT @Trans_Account_Agg. *,
+           ipCountry_risk ?? 0 AS ipCountry_risk,
+           ipState_risk ?? 0 AS ipState_risk,
+           ipPostalCode_risk ?? 0 AS ipPostalCode_risk,
+           transactionIPaddress_risk ?? 0 AS transactionIPaddress_risk,
+           paymentBillingPostalCode_risk ?? 0 AS paymentBillingPostalCode_risk,
+           shippingPostalCode_risk ?? 0 AS shippingPostalCode_risk,
+           accountPostalCode_risk ?? 0 AS accountPostalCode_risk
+    FROM @Trans_Account_Agg
+         LEFT JOIN
+             @Risktable_ipCountry
+         ON @Trans_Account_Agg.ipCountry == @Risktable_ipCountry.ipCountry
+         LEFT JOIN
+             @Risktable_ipState
+         ON @Trans_Account_Agg.ipState == @Risktable_ipState.ipState
+         LEFT JOIN
+             @Risktable_ipPostalCode
+         ON @Trans_Account_Agg.ipPostalCode == @Risktable_ipPostalCode.ipPostalCode
+         LEFT JOIN
+             @Risktable_transactionIPaddress
+         ON @Trans_Account_Agg.transactionIPaddress == @Risktable_transactionIPaddress.transactionIPaddress
+         LEFT JOIN
+             @Risktable_paymentBillingPostalCode
+         ON @Trans_Account_Agg.paymentBillingPostalCode == @Risktable_paymentBillingPostalCode.paymentBillingPostalCode
+         LEFT JOIN
+             @Risktable_shippingPostalCode
+         ON @Trans_Account_Agg.shippingPostalCode == @Risktable_shippingPostalCode.shippingPostalCode
+         LEFT JOIN
+             @Risktable_accountPostalCode
+         ON @Trans_Account_Agg.accountPostalCode == @Risktable_accountPostalCode.accountPostalCode;
+
+// Add boolean features, drop redundant columns
+@Trans_Account_Agg_Risk_Binary = SELECT accountID, transactionID, transactionAmountUSD, transactionCurrencyCode, localHour, transactionScenario, transactionType, 
+                                        isProxyIP, browserLanguage, paymentInstrumentType, cardType, 
+                                        paymentBillingState, paymentBillingCountryCode, shippingState, 
+                                        shippingCountry, cvvVerifyResult, digitalItemCount, physicalItemCount, transactionDateTime, 
+                                        accountState, accountCountry, accountAge, isUserRegistered, paymentInstrumentAgeInAccount, sumPurchaseAmount1Day, 
+                                        sumPurchaseCount1Day, sumPurchaseAmount30Day, sumPurchaseCount30Day, ipState_risk, ipPostalCode_risk, ipCountry_risk, 
+                                        transactionIPaddress_risk, paymentBillingPostalCode_risk, shippingPostalCode_risk, accountPostalCode_risk,
+                                        (transactionAmountUSD >150 ? true : false) AS is_highAmount,
+                                        (paymentBillingPostalCode==accountPostalCode ? false : true) AS acct_billing_postalCode_mismatchFlag,
+                                        (paymentBillingCountryCode==accountCountry ? false : true) AS acct_billing_country_mismatchFlag,
+                                        (shippingPostalCode==accountPostalCode ? false : true) AS acct_shipping_postalCode_mismatchFlag,
+                                        (shippingCountry==accountCountry ? false : true) AS acct_shipping_country_mismatchFlag,
+                                        (shippingPostalCode==paymentBillingPostalCode ? false : true) AS shipping_billing_postalCode_mismatchFlag,
+                                        (shippingCountry==paymentBillingCountryCode ? false : true) AS shipping_billing_country_mismatchFlag
+                                        FROM @Trans_Account_Agg_Risk;
+
+@ExtendedData =
+    SELECT Extension.R.RandomNumberGenerator.GetRandomNumber(@PartitionCount) AS Par,
+           *
+    FROM @Trans_Account_Agg_Risk_Binary;
+
+
+
+@RScriptOutput =
+    REDUCE @ExtendedData
+    ON Par
+    PRODUCE Par,
+            accountID string,
+            transactionID string,
+            transactionAmountUSD double,
+            score double
+    READONLY Par
+    USING new Extension.R.Reducer(scriptFile : "FraudDetection-Scoring.R", rReturnType : "dataframe");
+
+
+OUTPUT @RScriptOutput TO @OutputFile USING Outputters.Csv();
+
