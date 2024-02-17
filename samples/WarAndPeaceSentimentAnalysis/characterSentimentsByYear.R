@@ -6,7 +6,7 @@ library(stringr)
 library(reshape)
 
 # Read the war and peace dataset, with key phrase and sentimenet extracted
-warpeace <- read.csv(file="https://machinelearningdatasets.blob.core.windows.net/public/warandpeace/warandpeaceSentimentKeyPhrase.csv",header=FALSE, sep=",")
+warpeace <- read.csv(file="./data/warandpeaceSentimentKeyPhrase.csv",header=FALSE, sep=",")
 
 # Specify the characters in War and Peace
 bookCharacters <- c("Cyril", "Bezúkhov",  "Pierre",  "Nicholas",
